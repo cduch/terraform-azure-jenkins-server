@@ -1,0 +1,54 @@
+pipeline {
+    
+    agent any
+
+    environment {
+        GIT_REPO = "https://github.com/cduch/jenkins-workflow-demo"
+        TFE_NAME = "app.terraform.io"
+        TFE_URL = "https://app.terraform.io"
+        TFE_ORGANIZATION = "<ORGANIZATION>"
+        TFE_API_URL = "${TFE_URL}/api/v2"
+        TFE_API_TOKEN = credentials("tfe_api_token")
+    }
+
+    stages {
+        stage('Preparation') {
+            steps {
+                git "${GIT_REPO}"
+                sh "ls"
+                sh '''
+                  curl -o tf.zip https://releases.hashicorp.com/terraform/1.0.6/terraform_1.0.6_linux_amd64.zip ; yes | unzip tf.zip
+                    ./terraform version
+                    
+                '''
+            }
+        }
+        stage('TFE Workspace List ') {
+            steps {
+                sh '''
+                  curl \
+                    --silent --show-error --fail \
+                    --header "Authorization: Bearer $TFE_API_TOKEN" \
+                    --header "Content-Type: application/vnd.api+json" \
+                    ${TFE_API_URL}/organizations/${TFE_ORGANIZATION}/workspaces \
+                    | jq -r \'.data[] | .attributes.name\'
+                '''
+            }
+        }
+        stage('Terraform Init') {
+            steps {
+                sh "./terraform init"
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                sh "./terraform plan"
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                sh "./terraform apply -auto-approve"
+            }
+        }
+    }
+}
