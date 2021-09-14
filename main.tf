@@ -15,7 +15,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "${var.prefix}rg${var.suffix}"
-  location = var.location
+  location = "${var.location}"
   tags = {
     "owner" = trimspace(var.owner) != "" ? var.owner : null
   }
