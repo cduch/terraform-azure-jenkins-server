@@ -14,4 +14,4 @@ runcmd:
  - sudo apt update
  - sudo apt install jenkins -y
  - sudo systemctl start jenkins
- - sudo ufw allow 8800
+ - sudo ufw allow 8080
